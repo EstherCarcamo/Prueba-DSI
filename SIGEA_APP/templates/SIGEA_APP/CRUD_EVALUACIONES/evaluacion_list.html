@@ -1,0 +1,357 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Evaluaciones{% endblock %}
+{% block content %}
+<div class="mt-1">
+    <h1>Evaluaciones</h1>
+
+    <form method="get" action="">
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <input type="text" name="q" class="form-control" placeholder="Buscar por nombre" value="{{ request.GET.q }}">
+                <div class="input-group-prepend ml-3">
+                    <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                </div>
+                <button type="submit" class="btn btn-primary ml-3 mr-3">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createModal">
+        <i class="fas fa-plus"></i> Crear Evaluación
+    </button> 
+       
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-borderless table-primary align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombres</th>
+                    <th>Tipo de Evaluación</th>
+                    <th>Nota</th>
+                    <th>Plan de Desarrollo</th>
+                    <th>Acciones</th>
+                    <th>Acciones PlanDes</th>         
+                </tr>
+            </thead>
+            <tbody>
+                {% for evaluacion in page_obj %}
+                <tr>
+                    <td>{{ evaluacion.idusuario.nombre }} {{ evaluacion.idusuario.apellido }}</td>
+                    <td>{{ evaluacion.tipoevaluacion }}</td>
+                    <td>{{ evaluacion.notaevaluacio }}</td>
+                    <td>
+                        {% if evaluacion.idplandes %}
+                            {% if evaluacion.idplandes.nombreplandes %}
+                                <a>{{ evaluacion.idplandes.nombreplandes }}</a>
+                            {% else %}
+                                (Sin nombre)
+                            {% endif %}
+                        {% else %}
+                            No hay plan asignado
+                        {% endif %}
+                    </td>                 
+                    <td>
+                        <button class="btn btn-info" data-toggle="modal" data-target="#detailModal{{ evaluacion.idevaluacion }}">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn btn-warning" data-toggle="modal" data-target="#updateModal{{ evaluacion.idevaluacion }}" onclick="loadUpdateForm({{ evaluacion.idevaluacion }})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ evaluacion.idevaluacion }}">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </td>
+                    <td>
+                        <!-- Botones dinámicos para planes de desarrollo -->
+                        {% if evaluacion.idplandes %}
+                        <a class="btn btn-primary" href="{% url 'plandesarrollo_update' evaluacion.idevaluacion evaluacion.idplandes.idplandes %}">
+                            <i class="fas fa-edit"></i>Editar plan
+                        </a>
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModalPlan{{ evaluacion.idplandes.idplandes }}">
+                            <i class="fas fa-trash-alt"></i> Eliminar plan
+                        </button>
+
+                        {% else  %}
+                        <a class="btn btn-success" href="{% url 'plandesarrollo_create' evaluacion.idevaluacion %}">
+                            <i class="fas fa-plus-circle"></i> Crear Plan
+                        </a>             
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <!-- Detail Modal -->
+                <div class="modal fade" id="detailModal{{ evaluacion.idevaluacion }}" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel{{ evaluacion.idevaluacion }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="detailModalLabel{{ evaluacion.idevaluacion }}">Detalles de la Evaluación</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <ul class="list-group list-group-flush">
+                                    {% if plandes %}
+                                    {% for pd in plandes %}
+                                    {% if evaluacion.idplandes.idplandes == pd.idplandes %}
+                                    <li class="list-group-item"><strong>Plan de Desarrollo:</strong> {{ pd.nombreplandes }}</li>       
+                                     {% endif %}
+                                    {% endfor %}
+                                    {% else %}
+                                    <li class="list-group-item"><strong>Plan de Desarrollo:</strong> No hay plan asignado</li>
+                                    {% endif %}                   
+                                    <li class="list-group-item"><strong>Usuario:</strong> {{ evaluacion.idusuario }}</li>
+                                    <li class="list-group-item"><strong>Nombres:</strong> {{ evaluacion.idusuario.nombre }} {{ evaluacion.idusuario.apellido }}</li>
+                                    <li class="list-group-item"><strong>Tipo de Evaluación:</strong> {{ evaluacion.tipoevaluacion }}</li>
+                                    <li class="list-group-item"><strong>Nota:</strong> {{ evaluacion.notaevaluacio }}</li>
+                                    <li class="list-group-item"><strong>Comentario:</strong> {{ evaluacion.comentarioevaluacio }}</li>
+                                    <li class="list-group-item"><strong>Fecha:</strong> {{ evaluacion.fechaevaluacion }}</li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Modal -->
+                <div class="modal fade" id="updateModal{{ evaluacion.idevaluacion }}" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel{{ evaluacion.idevaluacion }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalLabel{{ evaluacion.idevaluacion }}">Editar Evaluación</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateForm{{ evaluacion.idevaluacion }}" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <!-- form fields will be loaded here -->
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="submitUpdateForm({{ evaluacion.idevaluacion }})">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ evaluacion.idevaluacion }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ evaluacion.idevaluacion }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel{{ evaluacion.idevaluacion }}">Eliminar Evaluación</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                ¿Estás seguro de que deseas eliminar esta evaluación?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-danger" onclick="deleteEvaluacion({{ evaluacion.idevaluacion }})">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Delete Modal PLAN -->
+                <div class="modal fade" id="deleteModalPlan{{ evaluacion.idplandes.idplandes }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabelPlan{{ evaluacion.idplandes.idplandes }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabelPlan{{ evaluacion.idplandes.idplandes }}">Eliminar plan</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                ¿Estás seguro de que deseas eliminar este plan de desarollo?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-danger" onclick="deletePlanDesarrollo({{ evaluacion.idplandes.idplandes }})">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Agregar el control de paginación -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+        
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Crear Evaluación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!-- form fields will be loaded here -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateForm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#createModal').on('shown.bs.modal', function () {
+            $.get('{% url "evaluacion_create" %}', function(data) {
+                $('#createForm').html(data);
+            }).fail(function(xhr, status, error) {
+                Swal.fire('Error', 'Error al cargar el formulario de creación de evaluación', 'error');
+            });
+        });
+    });
+
+    function loadUpdateForm(id) {
+        $.get('/evaluaciones/' + id + '/edit/', function(data) {
+            $('#updateForm' + id).html(data);
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al cargar el formulario de actualización de evaluación', 'error');
+        });
+    }
+
+    function submitCreateForm() {
+        var form = $('#createForm')[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            url: '{% url "evaluacion_create" %}',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                if (data.success) {
+                    Swal.fire('Éxito', 'Evaluación creada correctamente', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire('Error', 'Error al procesar la creación de la evaluación', 'error');
+            }
+        });
+    }
+
+    function submitUpdateForm(id) {
+        var form = $('#updateForm' + id)[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            url: '/evaluaciones/' + id + '/edit/',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                if (data.success) {
+                    Swal.fire('Éxito', 'Evaluación actualizada correctamente', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire('Error', 'Error al procesar la actualización de la evaluación', 'error');
+            }
+        });
+    }
+
+    function deleteEvaluacion(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/evaluaciones/' + id + '/delete/', function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado!', 'La evaluación ha sido eliminada.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire('Error', 'Error al procesar la eliminación de la evaluación', 'error');
+                });
+            }
+        });
+    }
+    function deletePlanDesarrollo(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/evaluaciones/deletePlan/' + id , function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado!', 'El plan de desarollo ha sido eliminada.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire('Error', 'Error al procesar la eliminación del plan de desarollo', 'error');
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %} 

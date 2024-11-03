@@ -1,0 +1,482 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Actividad{% endblock %}
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.13/index.global.min.js'></script>
+
+<div class="mt-1">
+    <h1>Calendario</h1>
+
+    <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#createModal">
+        <i class="fas fa-plus"></i> Crear Actividad
+    </button>
+
+    <div id='calendar'></div>
+
+    <!-- Create Modal Crear Nueva Actividad -->
+    <!-- Modal Crear Actividad -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">
+                        <i class="fas fa-plus-circle"></i> Crear Nueva Actividad
+                    </h5>
+                    <button type="button" class="btn text-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario de Creación de Actividad -->
+                    <form id="newActividad" method="post" action="{% url 'actividades_create' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="actividadTitle">
+                                <i class="fas fa-heading"></i> Nombre de actividad:
+                            </label>
+                            <input type="text" class="form-control" id="actividadTitle" name="nombreactividad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="actividadStart">
+                                <i class="fas fa-calendar-alt"></i> Fecha y hora de inicio:
+                            </label>
+                            <input type="datetime-local" class="form-control" id="actividadStart" name="fechaactividad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="actividadEND">
+                                <i class="fas fa-calendar-alt"></i> Fecha y hora de finalización:
+                            </label>
+                            <input type="datetime-local" class="form-control" id="actividadEND" name="fechafin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="actividadTipo">
+                                <i class="fas fa-tag"></i> Tipo de actividad:
+                            </label>
+                            <input type="text" class="form-control" id="actividadTipo" name="tipoactividad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="actividadDescription">
+                                <i class="fas fa-align-left"></i> Descripción:
+                            </label>
+                            <textarea class="form-control" id="actividadDescription" name="descripcionactividad" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="docanexoactividad">
+                                <i class="fas fa-file"></i> Documento anexo:
+                            </label>
+                            <input type="file" class="form-control" id="docanexoactividad" name="docanexoactividad">
+                        </div>
+                        <div class="form-group sticky">
+                            <label for="searchUser">
+                                <i class="fas fa-search"></i> Buscar Invitados:
+                            </label>
+                            <input type="text" id="searchUser" class="form-control" placeholder="Buscar usuario por nombre">
+                            <div id="containerUserList" class="container d-none" style="position:relative;margin-top: 1.2rem;overflow:auto; height: 100px">
+                                <div id="userList">
+                                    <!-- Los usuarios se cargarán dinámicamente aquí -->
+                                </div>
+                            </div>
+                        </div>
+                        <button id="insertaract" type="submit" class="btn btn-primary" data-url="{% url 'actividades_create' %}">
+                            <i class="fas fa-save"></i> Crear Actividad
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Detalles de Actividad -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">
+                        <i class="fas fa-info-circle"></i> Detalles de la Actividad
+                    </h5>
+                    <button type="button" class="btn text-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Detalles de la Actividad -->
+                    <div class="form-group">
+                        <label for="detailTitle">
+                            <i class="fas fa-heading"></i> Nombre de actividad:
+                        </label>
+                        <input type="text" class="form-control" id="detailTitle" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailStart">
+                            <i class="fas fa-calendar-alt"></i> Fecha y hora de inicio:
+                        </label>
+                        <input type="datetime-local" class="form-control" id="detailStart" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailEnd">
+                            <i class="fas fa-calendar-alt"></i> Fecha y hora de finalización:
+                        </label>
+                        <input type="datetime-local" class="form-control" id="detailEnd" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailTypeActivity">
+                            <i class="fas fa-tag"></i> Tipo de actividad:
+                        </label>
+                        <input type="text" class="form-control" id="detailTypeActivity" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailDescription">
+                            <i class="fas fa-align-left"></i> Descripción:
+                        </label>
+                        <textarea class="form-control" id="detailDescription" rows="3" readonly></textarea>
+                    </div>
+                    <div id="archivoContainer" class="form-group">
+                        <label for="archivoLink">
+                            <i class="fas fa-file"></i> Archivo anexo:
+                        </label>
+                        <a class="btn btn-primary" id="archivoLink" href="#" target="_blank">
+                            <i class="fas fa-file"></i> Ver archivo
+                        </a>
+                    </div>
+                    <div id="invitadosContainer">
+                        <h5>Invitados:</h5>
+                        <ul id="invitadosList">
+                            <!-- Los invitados se llenarán dinámicamente aquí -->
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="mostrarFormulario()">
+                        <i class="fas fa-bell"></i> Añadir Recordatorio
+                    </button>
+
+                    {% if pruebita == 4 %}
+
+                    {% else %}
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ actividades.idactividad }}">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </button>
+                    <button class="btn btn-warning" data-dismiss="modal" data-toggle="modal" onclick="editActi({{ actividades.idactividad }})">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    {% endif %}
+
+                    <!-- Formulario de Recordatorio -->
+                    <div id="newRecordatorio" style="display: none;" onsubmit="ocultarFormulario()">
+                        <form id="newRecordatorioForm">
+                            <div class="form-group">
+                                <label for="recordatorioTitle">
+                                    <i class="fas fa-bell"></i> Nombre de Recordatorio:
+                                </label>
+                                <input type="text" class="form-control" id="recordatorioTitle" name="nombrerecordatorio" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="RecordatorioStart">
+                                    <i class="fas fa-calendar-alt"></i> Fecha y hora del Recordatorio:
+                                </label>
+                                <input type="datetime-local" class="form-control" id="RecordatorioStart" name="fecharecordatorio" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordatorioDescription">
+                                    <i class="fas fa-align-left"></i> Descripción:
+                                </label>
+                                <textarea class="form-control" id="recordatorioDescription" name="descripcionrecordatorio" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="idactividad">
+                                    <i class="fas fa-tasks"></i> Actividad:
+                                </label>
+                                <input readonly class="form-control" id="idactividad" name="idactividad">
+                            </div>
+                            <button id="insertarRec" type="submit" class="btn btn-primary" data-url="{% url 'recordatorio_create' %}">
+                                <i class="fas fa-save"></i> Crear Recordatorio
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Modal Eliminar Actividad -->
+                    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel">
+                                        <i class="fas fa-trash-alt"></i> Eliminar Actividad
+                                    </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    ¿Estás seguro de que deseas eliminar esta actividad?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteActividad()">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal d-none" id="editarActividad"> 
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+<script>
+
+function editActi(){
+    var id = document.getElementById('idactividad').value;
+    $.get('/actividades/update/' + id , function(data) {
+        $('#editarActividad').removeClass('d-none').fadeIn();
+        $('#editarActividad').html(data);
+    });
+}
+
+function closeEditActividad(){
+    $('#editarActividad').addClass('d-none').fadeOut();
+    $('#modalActividad').remove();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale:'es',
+        timeZone: 'local',
+        initialView: 'dayGridMonth',
+        height: 635,
+        headerToolbar: {
+            left: 'prev,next',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,multiMonthYear'
+        },
+        selectable: true,
+        editable: true,
+        dayMaxEvents: true,
+        events: '/actividades/list',
+        resourceAreaHeaderContent: 'Rooms',
+
+        buttonText: {
+            month: 'Mes',
+            week: 'Semana',
+            day: 'Día',
+            year: 'Año'
+        },
+
+        // Handler for event clicks
+        eventClick: function(info) {
+            // Prevent the default action
+            info.jsEvent.preventDefault();
+            // Populate the modal with the event details
+            document.getElementById('detailTitle').value = info.event.title;
+            document.getElementById('detailStart').value = new Date(info.event.start).toISOString().slice(0,16);
+            document.getElementById('detailEnd').value = new Date(info.event.end).toISOString().slice(0,16);
+            document.getElementById('detailDescription').value = info.event.extendedProps.description || '';
+            document.getElementById('detailTypeActivity').value = info.event.extendedProps.typeact || '';
+            document.getElementById('idactividad').value = info.event.extendedProps.idacti;
+            
+
+            // Show or hide the archivo link
+            var archivoLink = document.getElementById('archivoLink');
+            if (info.event.extendedProps.archivoactividad) {
+                archivoLink.href = info.event.extendedProps.archivoactividad;
+                archivoLink.style.display = 'block';
+            } else {
+                archivoLink.style.display = 'none';
+            }
+
+            // Cargar los invitados de la actividad
+            var invitadosListContainer = document.getElementById('invitadosList');
+            invitadosListContainer.innerHTML = ''; // Limpiar la lista de invitados
+
+            var invitados = info.event.extendedProps.invitados;  // Obtener los invitados del evento
+            invitados.forEach(function(invitado) {
+                var invitadoItem = document.createElement('li');
+                invitadoItem.textContent = invitado.nombre + " " + invitado.apellido;
+                invitadosListContainer.appendChild(invitadoItem);
+            });
+
+            
+            // Show the modal
+            $('#detailModal').modal('show');
+        }
+    });
+
+    calendar.on('select', function(info) {
+        // Pre-fill the start and end date fields
+        document.getElementById('actividadStart').value = formatDateTimeLocal(info.start);
+        document.getElementById('actividadEND').value = formatDateTimeLocal(info.end);
+
+        // Show the modal
+        $('#createModal').modal('show');
+    });
+
+
+    // Function to format date to datetime-local format
+    function formatDateTimeLocal(date) {
+        const d = new Date(date);
+        const pad = (n) => (n < 10 ? '0' + n : n);
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    calendar.render();
+
+    // AJAX submit for newActividad form
+    $(document).on('submit', '#newActividad', function(event) {
+        event.preventDefault();
+        var button = $('#insertaract').data('url');
+        var formData = new FormData(this);  // Usar FormData para manejar archivos
+    
+        $.ajax({
+            url: button,
+            type: 'POST',
+            data: formData,
+            contentType: false,  // Necesario para enviar archivos
+            processData: false,  // Necesario para enviar archivos
+            success: function(data) {
+                if (data.success) {
+                    $('#createModal').modal('hide');
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Error en la solicitud AJAX:');
+                console.error(xhr);
+                console.error(status);
+                console.error(error);
+            }
+        });
+    });
+
+    // AJAX submit for newRecordatorioForm form
+    $(document).on('submit', '#newRecordatorioForm', function(event) {
+        event.preventDefault();
+        var button = $('#insertarRec').data('url');
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: button,
+            type: 'POST',
+            data: formData,
+            success: function(data) {
+                if (data.success) {
+                    $('#insertarRec').modal('hide');
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Error en la solicitud AJAX:');
+                alert(xhr.toString());
+                alert(status);
+                alert(error);
+            }
+        });
+    });
+
+    // JavaScript para mostrar y ocultar el formulario de recordatorio
+    window.mostrarFormulario = function() {
+        var form = document.getElementById('newRecordatorio');
+        form.style.display = 'block';
+    }
+
+    window.ocultarFormulario = function() {
+        var form = document.getElementById('newRecordatorio');
+        form.style.display = 'none';
+    }
+
+    window.deleteActividad = function() {
+        var idactividad = document.getElementById('idactividad').value;
+        $.post('/actividades/delete/' + idactividad + '/', function(data) {
+            if (data.success) {
+                $('#detailModal').modal('hide');
+                alert('Actividad eliminada correctamente');
+                location.reload();
+            } else {
+                alert('Error al eliminar la actividad');
+            }
+        });
+    }
+    
+    // Lista para mantener los usuarios seleccionados
+    var selectedUsers = [];
+
+    // Función para actualizar la lista de usuarios seleccionados
+    function updateSelectedUsers() {
+        $('#userList input[type="checkbox"]').each(function() {
+            var userId = $(this).val();
+            if ($(this).is(':checked')) {
+                if (!selectedUsers.includes(userId)) {
+                    selectedUsers.push(userId);
+                }
+            } else {
+                var index = selectedUsers.indexOf(userId);
+                if (index > -1) {
+                    selectedUsers.splice(index, 1);
+                }
+            }
+        });
+    }
+
+    // Función para actualizar la visualización de la lista de usuarios seleccionados
+    function renderSelectedUsers() {
+        $('#userList input[type="checkbox"]').each(function() {
+            var userId = $(this).val();
+            if (selectedUsers.includes(userId)) {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+
+    // Función para buscar usuarios y actualizar la lista de usuarios
+    $('#searchUser').on('keyup', function() {
+        $('#containerUserList').removeClass('d-none');
+        var searchTerm = $(this).val().trim();
+        var userList = $('#userList');
+
+        if (searchTerm === "") {
+            $('#containerUserList').addClass('d-none');
+            userList.html('');
+        }
+
+        $.ajax({
+            url: '{% url "search_users" %}',
+            data: { 'q': searchTerm },
+            success: function(data) {
+                userList.html('');
+                data.forEach(function(user) {
+                    var userHtml = '<div class="checkbox"><label><input type="checkbox" name="invitadosactividad" value="' + user.id + '"> ' + user.nombre + ' ' + user.apellido + '</label></div>';
+                    userList.append(userHtml);
+                });
+                renderSelectedUsers(); // Asegurarse de que los usuarios seleccionados sigan seleccionados
+            }
+        });
+    });
+
+    // Actualizar la lista de usuarios seleccionados cuando se cambia el checkbox
+    $(document).on('change', '#userList input[type="checkbox"]', function() {
+        updateSelectedUsers();
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,136 @@
+<!-- Modal Editar del Actividad -->
+ <div style="position:absolute; width: 100vw; height: 100vh; z-index: -300; background-color: rgb(0,0,0, 0.3)"></div>
+ <div class="modal-dialog scrollable-content" id="modalActividad" style="max-height: 90vh; overflow-y:auto; z-index: 300; position: relative">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" fill="currentColor" class="bi bi-pencil-square">
+                    <path d="M192 32h-64a32 32 0 0 0-32 32v384a32 32 0 0 0 32 32h256a32 32 0 0 0 32-32V224L352 128 192 32zm64 416H128V96h128zm160-296l-30 30-46-46 30-30a16 16 0 0 1 22.6 0l23 23a16 16 0 0 1 0 22.6z"/>
+                </svg>
+                Editar Actividad
+            </h5>
+            <button type="button" onclick="closeEditActividad()" class="btn btn-sm btn-link text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24" fill="currentColor" class="bi bi-x">
+                    <path fill-rule="evenodd" d="M300.561 256l84.721-84.72c7.81-7.81 7.81-20.474 0-28.284-7.81-7.81-20.474-7.81-28.284 0L272 227.716 187.279 143.004c-7.81-7.81-20.474-7.81-28.284 0-7.81 7.81-7.81 20.474 0 28.284l84.72 84.72-84.72 84.721c-7.81 7.81-7.81 20.474 0 28.284 7.81 7.81 20.474 7.81 28.284 0L256 284.284l84.721 84.72c7.81 7.81 20.474 7.81 28.284 0 7.81-7.81 7.81-20.474 0-28.284L300.561 256z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" id="editActividadForm">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor" class="bi bi-check-circle">
+                        <path fill-rule="evenodd" d="M256 0C114.616 0 0 114.616 0 256s114.616 256 256 256s256-114.616 256-256S397.384 0 256 0zm128.485 168.485l-17.678-17.678-85.807 85.807-43.132-43.132-17.678 17.678 60.81 60.81z"/>
+                    </svg>
+                    Guardar cambios
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).on('submit', '#editActividadForm', function(event) {
+    event.preventDefault();
+    var idactividad = document.getElementById('idactividad').value;
+    var formData = $(this).serialize();
+
+        $.ajax({
+            url: '/actividades/update/' + idactividad + '/',
+            type: 'POST',
+            data: formData,
+            success: function(data) {
+                if (data.success) {
+                    $('#detailModal').modal('hide');
+                    alert('Actividad editada correctamente');
+                location.reload();
+                } else {
+                    alert('Error al editar la actividad');
+                    console.log(data.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Error en la solicitud AJAX:');
+                alert(xhr.toString());
+                alert(status);
+                alert(error);
+            }
+        });
+    });
+
+
+    window.editActividad = function() {
+        var idactividad = document.getElementById('idactividad').value;
+        $.post('/actividades/update/' + idactividad + '/', function(data) {
+            if (data.success) {
+                $('#detailModal').modal('hide');
+                alert('Actividad editada correctamente');
+                location.reload();
+            } else {
+                alert('Error al editar la actividad');
+            }
+        });
+    }
+
+    // Lista para mantener los usuarios seleccionados para el modal de edición
+    var selectedEditUsers = [];
+
+    // Función para actualizar la lista de usuarios seleccionados en el modal de edición
+    function updateSelectedEditUsers() {
+        $('#editUserList input[type="checkbox"]').each(function() {
+            var userId = $(this).val();
+            if ($(this).is(':checked')) {
+                if (!selectedEditUsers.includes(userId)) {
+                    selectedEditUsers.push(userId);
+                }
+            } else {
+                var index = selectedEditUsers.indexOf(userId);
+                if (index > -1) {
+                    selectedEditUsers.splice(index, 1);
+                }
+            }
+        });
+    }
+
+    // Función para actualizar la visualización de la lista de usuarios seleccionados en el modal de edición
+    function renderSelectedEditUsers() {
+        $('#UserList input[type="checkbox"]').each(function() {
+            var userId = $(this).val();
+            if (selectedEditUsers.includes(userId)) {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+
+    // Función para buscar usuarios y actualizar la lista de usuarios en el modal de edición
+    $('#SearchUser').on('keyup', function() {
+        var searchTerm = $(this).val().trim();
+        var userList = $('#UserList');
+
+        if (searchTerm === "") {
+            userList.html('');
+            return;
+        }
+
+        $.ajax({
+            url: '{% url "search_users" %}',
+            data: { 'q': searchTerm },
+            success: function(data) {
+                userList.html('');
+                data.forEach(function(user) {
+                    var userHtml = '<div class="checkbox"><label><input type="checkbox" name="invitadosactividad" value="' + user.id + '"> ' + user.nombre + ' ' + user.apellido + '</label></div>';
+                    userList.append(userHtml);
+                });
+                renderSelectedEditUsers(); // Asegurarse de que los usuarios seleccionados sigan seleccionados
+            }
+        });
+    });
+
+    // Actualizar la lista de usuarios seleccionados cuando se cambia el checkbox en el modal de edición
+    $(document).on('change', '#editUserList input[type="checkbox"]', function() {
+        updateSelectedEditUsers();
+    });
+</script>

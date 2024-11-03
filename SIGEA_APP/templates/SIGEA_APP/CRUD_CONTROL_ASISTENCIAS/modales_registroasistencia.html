@@ -1,0 +1,50 @@
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal{{ registro.idregistro }}" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel{{ registro.idregistro }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="detailModalLabel{{ registro.idregistro }}">Detalles del Registro</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>ID:</strong> {{ registro.idregistro }}</p>
+                <p><strong>Empleado:</strong> {{ registro.empleado.nombre }}</p>
+                <p><strong>Fecha:</strong> {{ registro.fecha }}</p>
+                <p><strong>Hora de Entrada:</strong> {{ registro.hora_entrada }}</p>
+                <p><strong>Hora de Salida:</strong> {{ registro.hora_salida }}</p>
+                <p><strong>Total Horas Trabajadas:</strong> {{ registro.horas_trabajadas }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal{{ registro.idregistro }}" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel{{ registro.idregistro }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="updateModalLabel{{ registro.idregistro }}">Actualizar Registro</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm{{ registro.idregistro }}">
+                    {{ form.as_p }}  <!-- Aquí el campo de fecha se mostrará con el valor anterior -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitUpdateForm({{ registro.idregistro }})">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

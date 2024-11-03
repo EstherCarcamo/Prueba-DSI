@@ -1,0 +1,145 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Servicio{% endblock %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<style>
+    .scrollable-content {
+        overflow-y: auto;
+    }
+</style>
+
+<div class="">
+    <h1>Servicios</h1>
+    
+    <!-- Formulario de selección de departamento -->
+    <form method="GET" action="{% url 'servicio_list' %}" class="form-inline mb-4">
+        <label for="departamento_id" class="mr-2">Filtrar por Departamento:</label>
+        <select name="departamento_id" id="departamento_id" class="form-control mr-2">
+            <option value="">Todos</option>
+            {% for departamento in departamentos %}
+                <option value="{{ departamento.iddepartamento }}" {% if selected_departamento_id == departamento.iddepartamento|stringformat:"s" %}selected{% endif %}>
+                    {{ departamento.divisiondepartamento }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary mr-2">
+            <i class="fas fa-filter"></i> Filtrar
+        </button>        
+    </form>    
+    
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createModal">
+        <i class="fas fa-plus"></i> Crear Servicio
+    </button>
+    <div class="table-responsive mt-3">
+        {% include 'SIGEA_APP/CRUD_SERVICIO/servicios_table.html' %}
+    </div>
+</div>
+
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Crear servicio</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <!-- form fields will be loaded here -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateForm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load form for create modal
+    $(document).ready(function() {
+        $('#createModal').on('shown.bs.modal', function () {
+            $.get('{% url "servicio_create" %}', function(data) {
+                $('#createForm').html(data);
+            }).fail(function(xhr, status, error) {
+                Swal.fire('Error', 'Error al cargar el formulario de creación de servicio', 'error');
+            });
+        });
+    });
+
+    // Load form for update modal
+    function loadUpdateForm(id) {
+        $.get('/servicio/update/' + id + '/', function(data) {
+            $('#updateForm' + id).html(data);
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al cargar el formulario de actualización de servicio', 'error');
+        });
+    }
+
+    // Submit create form
+    function submitCreateForm() {
+        var form = $('#createForm');
+        $.post('{% url "servicio_create" %}', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Servicio creado correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar la creación del servicio', 'error');
+        });
+    }
+
+    // Submit update form
+    function submitUpdateForm(idservicio) {
+        var form = $('#updateForm' + idservicio);
+        $.post('/servicio/update/' + idservicio + '/', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Servicio actualizado correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar la actualización del servicio', 'error');
+        });
+    }
+
+    // Delete servicio
+    function deleteServicio(idservicio) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/servicio/delete/' + idservicio + '/', function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado!', 'El servicio ha sido eliminado.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire('Error', 'Error al procesar la eliminación del servicio', 'error');
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+<table class="table table-striped table-hover table-borderless table-primary align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Departamento</th>
+            <th>Nombre del servicio</th>
+            <th>Descripcion</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for servicio in page_obj %}
+        <tr>
+            <td>{{ servicio.iddepartamento.divisiondepartamento }}</td>
+            <td>{{ servicio.nombreservicio }}</td>
+            <td>{{servicio.descripcionservicio}}</td>
+            <td>
+                <button class="btn btn-info mr-2 " data-toggle="modal" data-target="#detailModal{{ servicio.idservicio }}">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+                <button class="btn btn-warning mr-2 " data-toggle="modal" data-target="#updateModal{{ servicio.idservicio }}" onclick="loadUpdateForm({{ servicio.idservicio }})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-danger mr-2 " data-toggle="modal" data-target="#deleteModal{{ servicio.idservicio }}">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+            </td>
+        </tr>
+
+        <!-- Detail Modal -->
+        <div class="modal fade" id="detailModal{{ servicio.idservicio }}" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel{{ servicio.idservicio }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detailModalLabel{{ servicio.idservicio }}">Detalles del Servicio</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>ID: </strong> {{ servicio.idservicio }}</p>
+                        <p><strong>Departamento:</strong> {{ servicio.iddepartamento.divisiondepartamento }}</p>
+                        <p><strong>Nombre del servicio:</strong> {{ servicio.nombreservicio }}</p>
+                        <p><strong>Descripcion del servicio:</strong> {{ servicio.descripcionservicio }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Modal -->
+        <div class="modal fade" id="updateModal{{ servicio.idservicio }}" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel{{ servicio.idservicio }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateModalLabel{{ servicio.idservicio }}">Editar Servicio</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="updateForm{{ servicio.idservicio }}">
+                            <!-- form fields will be loaded here -->
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" onclick="submitUpdateForm({{ servicio.idservicio }})">Guardar Cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal{{ servicio.idservicio }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ servicio.idservicio }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel{{ servicio.idservicio }}">Eliminar Servicio</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar este servicio?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteServicio({{ servicio.idservicio }})">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Agregar el control de paginación -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>

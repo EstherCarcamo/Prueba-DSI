@@ -1,0 +1,183 @@
+{% load static %}
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center mt-4" href="{% url 'index' %}">
+        <div class="sidebar-brand-icon">
+            <img src="{% static 'img/SIGEA_transparent.png' %}" alt="Logo" style="width: 100px; height: 100px;">
+        </div>
+    </a>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-3">
+
+    <!-- Heading -->
+    <div class="d-block sidebar-heading bg-primary text-white mt-3">
+        MÓDULOS ACTIVOS
+    </div>
+    
+
+    <div class="d-block scroll-custom">
+
+        <!-- Clientes -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'cliente_list' %}">
+                <i class="fas fa-user-tie"></i> 
+                <span>Clientes</span>
+            </a>
+        </li>
+
+        <!-- Casos -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'caso_list' %}">
+                <i class="fas fa-poll"></i>
+                <span>Casos</span>
+            </a>
+        </li>
+
+        <!-- Actividades -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'actividades' %}">
+                <i class="fas fa-calendar-check"></i> 
+                <span>Actividades</span>
+            </a>
+        </li>
+
+        <!-- Lista de Actividades -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'actividades_list_template' %}">
+                <i class="fas fa-clipboard-list"></i> 
+                <span>Lista de Actividades</span>
+            </a>
+        </li>
+
+        <!-- Registro de Horas -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'registroasistencia_list' %}">
+                <i class="fas fa-clock"></i>
+                <span>Registro de Horas</span>
+            </a>
+        </li>
+
+        <!-- Evaluaciones -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'evaluacion_list' %}">
+                <i class="fas fa-poll"></i>
+                <span>Evaluaciones</span>
+            </a>
+        </li>
+
+        {% if pruebita == 1 %}  
+        <!-- Mostrar para pruebita == 1 -->
+        <!-- Usuarios -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'usuario_list' %}">
+                <i class="fas fa-users"></i>
+                <span>Usuarios</span>
+            </a>
+        </li>
+        
+        <!-- Departamentos -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'departamento_list' %}">
+                <i class="fas fa-building"></i>
+                <span>Departamentos</span>
+            </a>
+        </li>
+        
+        <!-- Servicios -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'servicio_list' %}">
+                <i class="fas fa-concierge-bell"></i>
+                <span>Servicios</span>
+            </a>
+        </li>
+
+    
+    {% elif pruebita == 2 %}
+    <!-- Mostrar para pruebita == 2 -->
+        <!-- Usuarios -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'usuario_list' %}">
+                <i class="fas fa-users"></i>
+                <span>Usuarios</span>
+            </a>
+        </li>
+    <!-- Actividades -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'actividades' %}">
+            <i class="fas fa-tasks"></i>
+            <span>Actividades</span>
+        </a>
+    </li>
+
+    <!-- Clientes -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'cliente_list' %}">
+            <i class="fas fa-poll"></i>
+            <span>Clientes</span>
+        </a>
+    </li>
+
+    <!-- Casos -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'caso_list' %}">
+            <i class="fas fa-poll"></i>
+            <span>Casos</span>
+        </a>
+    </li>
+
+
+    {% elif pruebita == 3 %}
+    <!-- Mostrar para pruebita == 3 -->
+    <!-- Actividades -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'actividades' %}">
+            <i class="fas fa-tasks"></i>
+            <span>Actividades</span>
+        </a>
+    </li>
+    <!-- Departamentos -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'departamento_list' %}">
+            <i class="fas fa-building"></i>
+            <span>Departamentos</span>
+        </a>
+    </li>
+
+    <!-- Evaluaciones -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'evaluacion_list' %}">
+            <i class="fas fa-poll"></i>
+            <span>Evaluaciones</span>
+        </a>
+    </li>
+
+    <!-- Servicios -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'servicio_list' %}">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Servicios</span>
+        </a>
+    </li>
+
+
+    {% elif pruebita %}
+    <!-- Mostrar para pruebita == 4 -->
+    <!-- Actividades -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'actividades' %}">
+            <i class="fas fa-tasks"></i>
+            <span>Actividades</span>
+        </a>
+    </li>
+    {% endif %}
+
+    </div>
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+</ul>

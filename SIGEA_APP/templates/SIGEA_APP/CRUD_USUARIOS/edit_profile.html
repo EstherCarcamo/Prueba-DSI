@@ -1,0 +1,83 @@
+{% extends 'SIGEA_APP/base.html' %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="scrollable-content">
+                <h1><i class="bi bi-person-circle"></i> Editar Perfil</h1>
+                <form method="post" enctype="multipart/form-data" id="editProfileForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_nombre"><i class="bi bi-person"></i> Nombre:</label>
+                        {{ form.nombre }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_apellido"><i class="bi bi-person"></i> Apellido:</label>
+                        {{ form.apellido }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_dui"><i class="bi bi-credit-card"></i> DUI:</label>
+                        {{ form.dui }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_telefono"><i class="bi bi-phone"></i> Teléfono:</label>
+                        {{ form.telefono }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_email"><i class="bi bi-envelope"></i> Email:</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_foto_perfil"><i class="bi bi-camera"></i> Foto de Perfil:</label>
+                        {{ form.foto_perfil }}
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        setupFormatting();
+    });
+
+    function setupFormatting() {
+        var duiInput = $('input[name="dui"]');
+        var telefonoInput = $('input[name="telefono"]');
+        
+        if (duiInput.length) {
+            duiInput.on('input', function () {
+                this.value = formatDUI(this.value);
+            });
+        }
+
+        if (telefonoInput.length) {
+            telefonoInput.on('input', function () {
+                this.value = formatTelefono(this.value);
+            });
+        }
+
+        function formatDUI(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length > 8) {
+                value = value.slice(0, 8) + '-' + value.slice(8, 9);
+            }
+            return value;
+        }
+
+        function formatTelefono(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length > 4) {
+                value = value.slice(0, 4) + '-' + value.slice(4, 8);
+            }
+            return value;
+        }
+    }
+</script>
+
+{% endblock %}

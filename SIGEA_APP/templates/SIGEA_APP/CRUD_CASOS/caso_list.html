@@ -1,0 +1,249 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Casos{% endblock %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<style>
+    .scrollable-content {
+        overflow-y: auto;
+    }
+</style>
+
+<div class="mt-1">
+    <h1>Casos</h1>
+
+    <form method="get" action="">
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <input type="text" name="q" class="form-control" placeholder="Buscar por nombre del cliente" value="{{ request.GET.q }}">
+                <div class="input-group-prepend ml-3">
+                    <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                </div>
+                <button type="submit" class="btn btn-primary ml-3 mr-3">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createModal">
+        <i class="fas fa-plus"></i> Crear Caso
+    </button>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-borderless table-primary align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre del Caso</th>
+                    <th>Cliente</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for caso in page_obj %}
+                <tr>
+                    <td>{{ caso.nombreCaso }}</td>
+                    <td>
+                        {{ caso.idCliente.nombre }}
+                    </td>
+                    <td>{{ caso.descripcionCaso }}</td>
+                    <td>{{ caso.estadoCaso }}</td>
+                    <td>
+                        <button class="btn btn-info" data-toggle="modal" data-target="#detailModal{{ caso.idCaso }}">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn btn-warning" data-toggle="modal" data-target="#updateModal{{ caso.idCaso }}" onclick="loadUpdateForm({{ caso.idCaso }})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger" data-toggle="modal" onclick="deleteCaso({{ caso.idCaso }})">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>                    
+                    </td>
+                </tr>
+
+                <!-- Detail Modal -->
+                <div class="modal fade" id="detailModal{{ caso.idCaso }}" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel{{ caso.idCaso }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="detailModalLabel{{ caso.idCaso }}">Detalles del Caso</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>ID: </strong> {{ caso.idCaso }}</p>
+                                <p><strong>Nombre del Caso:</strong> {{ caso.nombreCaso }}</p>
+                                <p><strong>Cliente:</strong> {{ caso.idCliente.nombre }}</p>
+                                <p><strong>Descripción:</strong> {{ caso.descripcionCaso }}</p>
+                                <p><strong>Estado:</strong> {{ caso.estadoCaso }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Update Modal -->
+                <div class="modal fade" id="updateModal{{ caso.idCaso }}" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel{{ caso.idCaso }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalLabel{{ caso.idCaso }}">Editar Caso</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateForm{{ caso.idCaso }}">
+                                    <!-- form fields will be loaded here -->
+                                 </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="submitUpdateForm({{ caso.idCaso }})">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Agregar el control de paginación -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+        
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Crear Caso</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <!-- form fields will be loaded here -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateForm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Load form for create modal
+    $(document).ready(function() {
+        $('#createModal').on('shown.bs.modal', function () {
+            $.get('{% url "caso_create" %}', function(data) {
+                $('#createForm').html(data);
+            }).fail(function(xhr, status, error) {
+                Swal.fire('Error', 'Error al cargar el formulario de creación de caso', 'error');
+            });
+        });
+    });
+
+    // Load form for update modal
+    function loadUpdateForm(id) {
+        $.get('/caso/update/' + id + '/', function(data) {
+            $('#updateForm' + id).html(data);
+    
+            // Trigger change event to ensure dependent fields load correctly
+            var clienteSelect = $('#updateForm' + id + ' select[name="idCliente"]');
+            var selectedCliente = clienteSelect.val();
+            if (selectedCliente) {
+                clienteSelect.change();
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al cargar el formulario de actualización de caso', 'error');
+        });
+    }
+
+    // Submit create form
+    function submitCreateForm() {
+        var form = $('#createForm');
+        $.post('{% url "caso_create" %}', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Caso creado correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar la creación del caso', 'error');
+        });
+    }
+
+    // Submit update form
+    function submitUpdateForm(idCaso) {
+        var form = $('#updateForm' + idCaso);
+        $.post('/caso/update/' + idCaso + '/', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Caso actualizado correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar la actualización del caso', 'error');
+        });
+    }
+
+    // Delete caso
+    function deleteCaso(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/caso/delete/' + id + '/', function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado!', 'El caso ha sido eliminado.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire('Error', 'Error al procesar la eliminación del caso', 'error');
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %}

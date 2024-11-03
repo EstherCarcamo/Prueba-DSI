@@ -1,0 +1,122 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% load static %}
+
+{% block title %}
+  Evaluaciones - Crear plan de desarrollo
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1><i class="fas fa-file-alt"></i> Editar plan de desarrollo</h1>
+    </div>
+  </div>
+  
+  <div class="row pb-2">
+    <form class="col-12" method="POST" id="planD">
+      {% csrf_token %}
+      {{ DesarolloForm.idevaluacion }}
+      <div class="row justify-content-between">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="id_nombreplandes"><i class="fas fa-heading"></i> Nombre del plan:</label>
+            {{ DesarolloForm.nombreplandes }}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="id_duracionmesesplandes"><i class="fas fa-calendar-alt"></i> Duración del plan (meses):</label>
+            {{ DesarolloForm.duracionmesesplandes }}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="id_objetivosplandes"><i class="fas fa-bullseye"></i> Objetivos:</label>
+            {{ DesarolloForm.objetivosplandes }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="id_alcancesplandes"><i class="fas fa-sitemap"></i> Alcances:</label>
+            {{ DesarolloForm.alcancesplandes }}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="form-group">
+            <label for="id_descripcionplandes"><i class="fas fa-file-alt"></i> Descripción del plan:</label>
+            {{ DesarolloForm.descripcionplandes }}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="form-group">
+            <label for="id_instruccionesplandes"><i class="fas fa-info-circle"></i> Instrucciones:</label>
+            {{ DesarolloForm.instruccionesplandes }}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4 text-center align-items-center">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="p-2 border"><i class="fas fa-check-circle"></i> Fortalezas:</label>
+            {{ DesarolloForm.fortalezas }}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="p-2 border"><i class="fas fa-times-circle"></i> Debilidades:</label>
+            {{ DesarolloForm.debilidades }}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="p-2 border"><i class="fas fa-handshake"></i> Oportunidades:</label>
+            {{ DesarolloForm.oportunidades }}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="p-2 border"><i class="fas fa-exclamation-triangle"></i> Amenazas:</label>
+            {{ DesarolloForm.amenazas }}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4 justify-content-center">
+        <div class="col-md-2">
+
+          <button type="submit" id="btnEditarPlan" class="btn btn-primary btn-block"><i class="fas fa-plus"></i>Guardar cambios</button>
+
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+
+  $(document).ready(function() {
+      $('#btnEditarPlan').click(function(event) {
+          event.preventDefault(); // Evitar el comportamiento predeterminado de envío del formulario
+          var form = $(this).closest('form'); // Obtener el formulario más cercano al botón
+          $.ajax({
+              type: form.attr('method'),
+              url: form.attr('action'),
+              data: form.serialize(),
+              success: function(data) {
+                  window.location.href = '/evaluaciones'; 
+              },
+              error: function(xhr, status, error) {
+                  alert('Error al editar el plan'); // Mostrar alerta en caso de error
+              }
+          });
+      });
+  });
+</script>
+
+
+{% endblock %}

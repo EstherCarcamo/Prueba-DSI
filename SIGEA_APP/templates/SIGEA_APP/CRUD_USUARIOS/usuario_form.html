@@ -1,0 +1,50 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ form.departamento.label_tag }}
+        {{ form.departamento }}
+    </div>
+    <div class="form-group">
+        {{ form.idservicio.label_tag }}
+        {{ form.idservicio }}
+    </div>
+    <div class="form-group">
+        {{ form.nombre.label_tag }}
+        {{ form.nombre }}
+    </div>
+    <div class="form-group">
+        {{ form.apellido.label_tag }}
+        {{ form.apellido }}
+    </div>
+    <div class="form-group">
+        {{ form.dui.label_tag }}
+        {{ form.dui }}
+    </div>
+    <div class="form-group">
+        {{ form.telefono.label_tag }}
+        {{ form.telefono }}
+    </div>
+    <div class="form-group">
+        {{ form.salario.label_tag }}
+        {{ form.salario }}
+    </div>
+    <div class="form-group">
+        {{ form.email.label_tag }}
+        {{ form.email }}
+    </div>
+    <div class="form-group">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {% if form.instance.pk %}
+            <small class="form-text text-muted">Deja este campo en blanco para mantener la contraseña actual.</small>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        {{ form.tipousuario.label_tag }}
+        {{ form.tipousuario }}
+    </div>
+    <div class="form-group">
+        {{ form.foto_perfil.label_tag }}
+        {{ form.foto_perfil }}
+    </div>
+</form>

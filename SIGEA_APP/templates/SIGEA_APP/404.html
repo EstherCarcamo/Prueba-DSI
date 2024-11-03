@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado</title>
+    {% load static %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .stars, .twinkling, .clouds {
+            position: absolute;
+            display: block;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .stars {
+            z-index: 0;
+            background: #000 url("{% static 'img/fondo.png' %}") repeat top center;
+        }
+        .twinkling {
+            z-index: 1;
+            background: transparent url("{% static 'img/negro.png' %}") repeat top center;
+            animation: move-twink-back 200s linear infinite;
+        }
+        .clouds {
+            z-index: 2;
+            background: transparent url("{% static 'img/nubes.png' %}") repeat top center;
+            animation: move-clouds-back 200s linear infinite;
+        }
+        @keyframes move-twink-back {
+            from { background-position: 0 0; }
+            to { background-position: -10000px 5000px; }
+        }
+        @keyframes move-clouds-back {
+            from { background-position: 0 0; }
+            to { background-position: 10000px 0; }
+        }
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative; /* Añadido para establecer un contexto de apilamiento */
+            z-index: 3; /* Añadido para asegurar que el contenido esté por encima del fondo */
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .countdown {
+            font-size: 18px;
+            color: #555;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dog {
+            width: 200px;
+            height: 410px;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Contenedor de las estrellas -->
+    <div class="stars"></div>
+    <!-- Contenedor del parpadeo de estrellas -->
+    <div class="twinkling"></div>
+    <!-- Contenedor de las nubes -->
+    <div class="clouds"></div>
+
+    <div class="container">
+        <img src="https://i.gifer.com/3ww9.gif" alt="Dog" class="dog">
+        <h1>¡Acceso Denegado!</h1>
+        <p>No tienes permiso para acceder a esta página.</p>
+        <p>Serás redirigido en <span id="countdown" class="countdown">5</span> segundos.</p>
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        let seconds = 1000; // Define el número de segundos para el contador regresivo
+        let countdownElement = document.getElementById('countdown');
+
+        let countdownInterval = setInterval(() => {
+            seconds--;
+            countdownElement.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = '/';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

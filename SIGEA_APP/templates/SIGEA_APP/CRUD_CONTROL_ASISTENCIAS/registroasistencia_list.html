@@ -1,0 +1,172 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Registro de Asistencia{% endblock %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<style>
+    .scrollable-content {
+        overflow-y: auto;
+    }
+</style>
+
+<div class="mt-1">
+    <h1>Registro de Asistencia</h1>
+    
+    <!-- Formulario de filtro por usuario -->
+    <form method="GET" action="{% url 'registroasistencia_list' %}" class="form-inline mb-4">
+        <label for="usuario_id" class="mr-2">Filtrar por Usuario:</label>
+        <select name="usuario_id" id="usuario_id" class="form-control mr-2">
+            <option value="">Todos</option>
+            {% for usuario in usuarios %}
+                <option value="{{ usuario.idusuario }}" {% if selected_usuario_id == usuario.idusuario|stringformat:"s" %}selected{% endif %}>
+                    {{ usuario.nombre }} {{ usuario.apellido }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="dia" class="mr-2">Día:</label>
+        <input type="number" name="dia" id="dia" class="form-control mr-2" min="1" max="31" value="{{ request.GET.dia }}">
+    
+        <label for="mes" class="mr-2">Mes:</label>
+        <input type="number" name="mes" id="mes" class="form-control mr-2" min="1" max="12" value="{{ request.GET.mes }}">
+    
+        <label for="anio" class="mr-2">Año:</label>
+        <input type="number" name="anio" id="anio" class="form-control mr-2" min="1900" max="2100" value="{{ request.GET.anio }}">
+        
+        <button type="submit" class="btn btn-primary mr-2">
+            <i class="fas fa-filter"></i> Filtrar
+        </button>        
+    </form>    
+    
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createModal">
+        <i class="fas fa-plus"></i> Registrar Asistencia
+    </button>
+    <div class="table-responsive mt-3">
+        {% include 'SIGEA_APP/CRUD_CONTROL_ASISTENCIAS/registroasistencia_table.html' %}
+    </div>
+    <!-- Agregar el control de paginación -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+            </span>
+    
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Registrar Asistencia</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <!-- form fields will be loaded here -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateForm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load form for create modal
+    $(document).ready(function() {
+        $('#createModal').on('shown.bs.modal', function () {
+            $.get('{% url "registroasistencia_create" %}', function(data) {
+                $('#createForm').html(data);
+            }).fail(function(xhr, status, error) {
+                Swal.fire('Error', 'Error al cargar el formulario de registro de asistencia', 'error');
+            });
+        });
+    });
+
+    // Load form for update modal
+    function loadUpdateForm(id) {
+        $.get('/registroasistencia/update/' + id + '/', function(data) {
+            $('#updateForm' + id).html(data);
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al cargar el formulario de actualización de asistencia', 'error');
+        });
+    }
+
+    // Submit create form
+    function submitCreateForm() {
+        var form = $('#createForm');
+        $.post('{% url "registroasistencia_create" %}', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Asistencia registrada correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar el registro de asistencia', 'error');
+        });
+    }
+
+    // Submit update form
+    function submitUpdateForm(idregistro) {
+        var form = $('#updateForm' + idregistro);
+        $.post('/registroasistencia/update/' + idregistro + '/', form.serialize(), function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', 'Registro de asistencia actualizado correctamente', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', JSON.stringify(data.errors), 'error');
+            }
+        }).fail(function(xhr, status, error) {
+            Swal.fire('Error', 'Error al procesar la actualización del registro de asistencia', 'error');
+        });
+    }
+
+    // Delete registro
+    function deleteRegistro(idregistro) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/registroasistencia/delete/' + idregistro + '/', function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado!', 'El registro de asistencia ha sido eliminado.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', JSON.stringify(data.errors), 'error');
+                    }
+                }).fail(function(xhr, status, error) {
+                    Swal.fire('Error', 'Error al procesar la eliminación del registro de asistencia', 'error');
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %}

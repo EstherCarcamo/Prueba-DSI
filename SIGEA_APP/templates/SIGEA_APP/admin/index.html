@@ -1,0 +1,201 @@
+{% extends 'SIGEA_APP/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    .scrollable-content_table {
+        height: 14rem;
+        overflow-y: auto;
+    }
+    .scrollable-content-card {
+        max-height: 20vh; /* Ajusta esta altura según tus necesidades */
+        overflow-y: auto;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-content">
+    <h1>Dashboard</h1>
+    
+    <!-- Contenedor para poner las secciones una al lado de la otra -->
+    <div class="d-flex justify-content-between align-items-stretch flex-wrap">
+        <!-- Columna para Evaluaciones por Departamento -->
+        <div class="col-md-6 d-flex flex-column" style="min-height: 100%;">
+            <h3>Evaluaciones por Departamento</h3>
+            <div class="accordion" id="accordionExample" style="flex-grow: 1;">
+                {% for item in evaluaciones_por_departamento %}
+                <div class="card">
+                    <div class="card-header" id="heading{{ forloop.counter }}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+                                {{ item.departamento }}
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse{{ forloop.counter }}" class="collapse scrollable-content-card" aria-labelledby="heading{{ forloop.counter }}" data-parent="#accordionExample">
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID Evaluación</th>
+                                        <th>Tipo</th>
+                                        <th>Nota</th>
+                                        <th>Comentario</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evaluacion in item.evaluaciones %}
+                                    <tr>
+                                        <td>{{ evaluacion.idevaluacion }}</td>
+                                        <td>{{ evaluacion.tipoevaluacion }}</td>
+                                        <td>{{ evaluacion.notaevaluacio }}</td>
+                                        <td>{{ evaluacion.comentarioevaluacio }}</td>
+                                        <td>{{ evaluacion.fechaevaluacion }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5">No hay evaluaciones para este departamento</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No se encontraron departamentos con evaluaciones</p>
+                {% endfor %}
+            </div>
+
+            <!-- Gráfico de Evaluaciones por Departamento -->
+            <h3 class="mt-3">Gráfico de Evaluaciones por Departamento</h3>
+            <div id="evaluacionesPorDepartamento" class="chart-container"></div>
+        </div>
+
+        <!-- Columna para Actividades Programadas -->
+        <div class="col-md-6 d-flex flex-column" style="min-height: 100%;">
+            <h3>Actividades Programadas</h3>
+            <div class="table-responsive scrollable-content_table" style="flex-grow: 1;">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nombre de la Actividad</th>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for actividad in actividades_programadas %}
+                        <tr>
+                            <td>{{ actividad.nombreactividad }}</td>
+                            <td>{{ actividad.fechaactividad }}</td>
+                            <td>{{ actividad.descripcionactividad }}</td>
+                            <td>
+                                <!-- Dropdown para seleccionar el estado -->
+                                <select class="form-control" id="estadoActividad{{ actividad.idactividad }}">
+                                    {% for estado in estados %}
+                                    <option value="{{ estado.idestado }}" {% if estado.idestado == actividad.estadoactividad.idestado %}selected{% endif %}>
+                                        {{ estado.descripcion }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <!-- Botón para actualizar el estado -->
+                                <button class="btn btn-primary" onclick="guardarEstado({{ actividad.idactividad }})">Actualizar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">No hay actividades programadas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Gráfico de Actividades Programadas -->
+            <h3 class="mt-3">Gráfico de Actividades Programadas</h3>
+            <div id="actividadesProgramadas"></div>
+        </div>
+    </div>
+    </div>
+</div>
+
+    <script>
+        // Función para cambiar el estado de una actividad al hacer clic en "Actualizar"
+        function guardarEstado(idActividad) {
+            const estadoSeleccionado = document.getElementById('estadoActividad' + idActividad).value;
+
+            fetch("{% url 'actualizar_estado_actividad' %}", {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'idActividad': idActividad,
+                    'nuevoEstado': estadoSeleccionado
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Éxito', 'Estado actualizado correctamente', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Error', 'Hubo un error al actualizar el estado', 'error');
+            });
+        }
+
+        // Gráfico de Evaluaciones por Departamento
+        const evaluacionesData = {{ evaluaciones_data|safe }};
+        const departamentoLabels = evaluacionesData.map(item => item.departamento);
+        const evaluacionesCounts = evaluacionesData.map(item => item.evaluaciones_count);
+
+        const evaluacionesTrace = {
+            x: departamentoLabels,
+            y: evaluacionesCounts,
+            type: 'bar'
+        };
+
+        const evaluacionesLayout = {
+            title: 'Evaluaciones por Departamento',
+            xaxis: { title: 'Departamentos' },
+            yaxis: { title: 'Cantidad de Evaluaciones' }
+        };
+
+        Plotly.newPlot('evaluacionesPorDepartamento', [evaluacionesTrace], evaluacionesLayout);
+
+        // Gráfico de Actividades Programadas
+        const actividadesData = {{ actividades_data|safe }};
+        const actividadesLabels = actividadesData.map(item => item.actividad);
+        const actividadesFechas = actividadesData.map(item => item.fecha);
+
+        const actividadesTrace = {
+            x: actividadesFechas,
+            y: actividadesLabels,
+            type: 'scatter'
+        };
+
+        const actividadesLayout = {
+            title: 'Actividades Programadas',
+            xaxis: { title: 'Fecha' },
+            yaxis: { title: 'Actividades' }
+        };
+
+        Plotly.newPlot('actividadesProgramadas', [actividadesTrace], actividadesLayout);
+    </script>
+
+{% endblock %}

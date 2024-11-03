@@ -1,0 +1,290 @@
+{% extends 'SIGEA_APP/admin/index.html' %}
+{% block title %}Actividades{% endblock %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<style>
+    .scrollable-content {
+        overflow-y: auto;
+    }
+</style>
+
+<div class=" mt-1">
+    <h1>Reporte de actividades</h1>
+
+    <form method="get" action="">
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <input type="text" name="q" class="form-control" placeholder="Buscar por nombre de actividad" value="{{ request.GET.q }}">
+                <div class="input-group-prepend ml-3">
+                    <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                </div>
+                <button type="submit" class="btn btn-primary ml-3 mr-3">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-borderless table-primary align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre de actividad</th>
+                    <th>Fecha y hora de finalización</th>
+                    <th>Tipo de actividad</th>
+                    <th>Estado actual</th>
+                    <th>Cambiar estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for actividad in page_obj %}
+                <tr>
+                    <td>{{ actividad.nombreactividad }}</td>
+                    <td>{{ actividad.fechafin }}</td>
+                    <td>{{ actividad.tipoactividad }}</td>
+                    <td>{{ actividad.estadoactividad.descripcion }}</td>
+                    <td>
+                        <!-- Dropdown para seleccionar el nuevo estado -->
+                        <select class="form-control" id="estadoActividad{{ actividad.idactividad }}">
+                            {% for estado in estados %}
+                            <option value="{{ estado.idestado }}" {% if estado.idestado == actividad.estadoactividad.idestado %}selected{% endif %}>
+                                {{ estado.descripcion }}
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                    </td>
+                    <td>
+                        <!-- Botón de actualizar -->
+                        <button class="btn btn-primary mr-2" onclick="actualizarEstado({{ actividad.idactividad }})">Actualizar</button>
+
+                        <button class="btn btn-info mr-2 " data-toggle="modal" data-target="#viewModal{{ actividad.idactividad }}">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn btn-warning mr-2 " data-toggle="modal" data-target="#editModal{{ actividad.idactividad }}">
+                             <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger mr-2 " onclick="eliminarActividad({{ actividad.idactividad }})">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </td>
+                </tr>
+                <div class="modal fade" id="viewModal{{ actividad.idactividad }}" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Detalles de la Actividad</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Nombre:</strong> {{ actividad.nombreactividad }}</p>
+                                <p><strong>Fecha Inicio:</strong> {{ actividad.fechaactividad }}</p>
+                                <p><strong>Fecha Fin:</strong> {{ actividad.fechafin }}</p>
+                                <p><strong>Tipo:</strong> {{ actividad.tipoactividad }}</p>
+                                <p><strong>Descripción:</strong> {{ actividad.descripcionactividad }}</p>
+                                <p><strong>Documento Anexo:</strong>
+                                    {% if actividad.docanexoactividad %}
+                                        <a href="{{ actividad.docanexoactividad.url }}" target="_blank">Ver Documento</a>
+                                    {% else %}
+                                        No hay documento adjunto
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Modal de Editar -->
+                <div class="modal fade" id="editModal{{ actividad.idactividad }}" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Editar Actividad</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form id="formEdit{{ actividad.idactividad }}" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <!-- Campo Nombre de la actividad -->
+                                    <div class="form-group">
+                                        <label for="nombreactividad">Nombre de actividad</label>
+                                        <input type="text" class="form-control" name="nombreactividad" value="{{ actividad.nombreactividad }}">
+                                    </div>
+
+                                    <!-- Campo Tipo de actividad -->
+                                    <div class="form-group">
+                                        <label for="tipoactividad">Tipo de actividad</label>
+                                        <input type="text" class="form-control" name="tipoactividad" value="{{ actividad.tipoactividad }}">
+                                    </div>
+
+                                    <!-- Campo Fecha de inicio -->
+                                    <div class="form-group">
+                                        <label for="fechaactividad">Fecha de inicio</label>
+                                        <input type="datetime-local" class="form-control" name="fechaactividad" value="{{ actividad.fechaactividad|date:"Y-m-d\TH:i" }}">
+                                    </div>
+
+                                    <!-- Campo Fecha de finalización -->
+                                    <div class="form-group">
+                                        <label for="fechafin">Fecha de finalización</label>
+                                        <input type="datetime-local" class="form-control" name="fechafin" value="{{ actividad.fechafin|date:"Y-m-d\TH:i" }}">
+                                    </div>
+
+                                    <!-- Campo Descripción de la actividad -->
+                                    <div class="form-group">
+                                        <label for="descripcionactividad">Descripción de la actividad</label>
+                                        <textarea class="form-control" name="descripcionactividad">{{ actividad.descripcionactividad }}</textarea>
+                                    </div>
+
+                                    <!-- Campo Documento Anexo -->
+                                    <div class="form-group">
+                                        <label for="docanexoactividad">Documento Anexo</label>
+                                        {% if actividad.docanexoactividad %}
+                                            <p><a href="{{ actividad.docanexoactividad.url }}" target="_blank">Ver Documento Actual</a></p>
+                                        {% endif %}
+                                        <input type="file" class="form-control" name="docanexoactividad">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                    <button type="button" class="btn btn-primary" onclick="editarActividad({{ actividad.idactividad }})">Guardar cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Agregar el control de paginación -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+        
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Script para manejar el cambio de estado -->
+<script>
+    function actualizarEstado(idActividad) {
+        // Obtener el estado seleccionado
+        const estadoSeleccionado = document.getElementById('estadoActividad' + idActividad).value;
+
+        // Hacer la solicitud AJAX para cambiar el estado
+        $.ajax({
+            url: '/actividad/cambiar-estado/' + idActividad + '/',
+            type: 'POST',
+            data: {
+                estado: estadoSeleccionado,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(data) {
+                if (data.success) {
+                    Swal.fire('Éxito', 'Estado de la actividad actualizado correctamente', 'success').then(() => {
+                        location.reload(); // Recargar la página para mostrar los cambios
+                    });
+                } else {
+                    Swal.fire('Error', JSON.stringify(data.error), 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire('Error', 'Error al procesar la actualización del estado de la actividad', 'error');
+            }
+        });
+    }
+    function eliminarActividad(idActividad) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/actividades/delete/' + idActividad + '/',
+                type: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire('Eliminado', 'La actividad ha sido eliminada.', 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', 'No se pudo eliminar la actividad.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Hubo un problema al eliminar la actividad.', 'error');
+                }
+            });
+        }
+    });
+}
+
+function editarActividad(idActividad) {
+    const form = $('#formEdit' + idActividad);
+    const data = new FormData(form[0]);
+
+    $.ajax({
+        url: '/actividades/update/' + idActividad + '/',
+        type: 'POST',
+        data: data,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: '¡Cambios guardados!',
+                    text: 'La actividad ha sido actualizada exitosamente.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#4CAF50'
+                }).then(() => {
+                    $('#editModal' + idActividad).modal('hide');
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', 'Error al actualizar la actividad.', 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Hubo un problema en la solicitud de edición.', 'error');
+        }
+    });
+}
+
+
+
+
+</script>
+
+{% endblock %}
